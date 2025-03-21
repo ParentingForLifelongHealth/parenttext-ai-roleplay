@@ -1,0 +1,34 @@
+# This configuration file is used for LangChain interactions.
+# Placeholders wrapped in {} (e.g., {interaction_history}) will be replaced with dynamic values.
+
+models:
+  child: ""  # No template variables
+  child_temperature: 0.0  # No template variables
+  facilitator: ""  # No template variables
+  facilitator_temperature: 0.0  # No template variables
+
+static_messages:
+  retry_message: ""  # No template variables
+
+scenario:
+  name: ""  # No template variables
+  description: ""  # No template variables
+  # Set blank to let the parent initiate the conversation
+  conversation_initiator: ""  # No template variables
+  objectives: ""  # No template variables
+
+conditions:
+  child_only_neutral: ""  # No template variables
+  child_only_positive: ""  # No template variables
+  child_and_facilitator_positive_reinforcement: ""  # No template variables
+  child_and_facilitator_help: ""  # No template variables
+  facilitator_only_help: ""  # No template variables
+  end_conversation: ""  # No template variables
+
+system_prompts:
+  child: ""  # Available variables: {scenario_description}, {interaction_history}, {parent_response}, {turn_count}
+  facilitator_decision: ""  # Available variables: {scenario_description}, {scenario_objectives}, {interaction_history}, {child_response}, {parent_response}, {turn_count}, {child_only_neutral}, {child_only_positive}, {child_and_facilitator_positive_reinforcement}, {child_and_facilitator_help}, {facilitator_only_help}, {end_conversation}
+  facilitator_positive_reinforcement: ""  # Available variables: {scenario_description}, {scenario_objectives}, {parent_response}, {child_response}, {previous_coaching}
+  facilitator_help: ""  # Available variables: {scenario_description}, {scenario_objectives}, {parent_response}, {child_response}, {reasoning}
+  facilitator_end_coaching: ""  # Available variables: {scenario_description}, {scenario_objectives}, {parent_response}, {child_response}, {previous_coaching}, {reasoning}
+  facilitator_summary: ""  # Available variables: {scenario_description}, {scenario_objectives}, {interaction_history}, {parent_feedback_positive}, {parent_feedback_negative}

@@ -1,0 +1,4 @@
+.env
+traces/
+csv/
+__pycache__/
