@@ -35,6 +35,60 @@ app.get("/scenario1", (req, res) => {
 
 const stages = ["continue", "feedbackQuestion1", "feedbackQuestion2", "finish"];
 
+//this endpoint gets called when textit timesout (15seconds)
+//it waits for a few seconds before returning the latest message to give the last call a change to save it since the llm sometimes takes more than 15seconds.
+app.get("/latest-chat-msg", async (req, res) => {
+  if (!req.headers["x-api-key"] || req.headers["x-api-key"] !== process.env["API_KEY"]) {
+    return res.status(403).json({ error: "Forbidden: Invalid API Key" });
+  }
+
+  const { chat_id, lng } = req.query;
+
+  if (!chat_id) {
+    return res.status(400).json({ error: "Bad Request: chat_id is required" });
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 7000));
+
+  const configHelper = new ConfigHelper(lng);
+  const config = configHelper.getConfig();
+
+  try {
+    const chatHistory = await getChatHistory(chat_id);
+
+    if (chatHistory.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Not Found: No chat history found for the given chat_id" });
+    }
+
+    const latestChat = chatHistory[chatHistory.length - 1];
+    const coachingFeedback = latestChat.coachingFeedback
+      ? `🔵 ${config.static_messages.facilitator}: ${latestChat.coachingFeedback}`
+      : "";
+    const childMessage = latestChat.childMessage
+      ? `🟢 ${config.static_messages.child}: ${latestChat.childMessage}`
+      : "";
+    const summary = latestChat.summary
+      ? `${config.static_messages.summary}: ${latestChat.summary}`
+      : "";
+    const otherMessage = latestChat.message ? `${latestChat.message}` : "";
+
+    res.json({
+      response: {
+        coachingFeedback: coachingFeedback || "",
+        childMessage: childMessage || "",
+        summary: summary || "",
+        message: otherMessage || "",
+        endScenario: !!latestChat.summary,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.post("/chat", async (req, res) => {
   if (!req.headers["x-api-key"] || req.headers["x-api-key"] !== process.env["API_KEY"]) {
     return res.status(403).json({ error: "Forbidden: Invalid API Key" });
