@@ -108,30 +108,32 @@ app.post("/chat", async (req, res) => {
 
   let latestSavedChildResponse = "";
 
-  let interactionHistoryWithoutLastChildResponse = chatHistory.map((interaction, index) => {
-    let string = "";
-    if (interaction.parentMessage) {
-      string += `parent: ${interaction.parentMessage}\n`;
-    }
-    if (interaction.coachingFeedback) {
-      string += `coaching: ${interaction.coachingFeedback}\n`;
-    }
-    if (interaction.childMessage) {
-      // removes last childresponse from interactionHistory
-      if (index === chatHistory.length - 1) {
-        latestSavedChildResponse = interaction.childMessage;
-      } else {
-        string += `child: ${interaction.childMessage}\n`;
+  let interactionHistoryWithoutLastChildResponse = chatHistory
+    .map((interaction, index) => {
+      let string = "";
+      if (interaction.parentMessage) {
+        string += `parent: ${interaction.parentMessage}\n`;
       }
-    }
-    if (interaction.decision) {
-      string += `decision: ${interaction.decision}\n`;
-    }
-    if (interaction.decisionReasoning) {
-      string += `decision_reasoning: ${interaction.decisionReasoning}`;
-    }
-    return string;
-  });
+      if (interaction.coachingFeedback) {
+        string += `coaching: ${interaction.coachingFeedback}\n`;
+      }
+      if (interaction.childMessage) {
+        // removes last childresponse from interactionHistory
+        if (index === chatHistory.length - 1) {
+          latestSavedChildResponse = interaction.childMessage;
+        } else {
+          string += `child: ${interaction.childMessage}\n`;
+        }
+      }
+      if (interaction.decision) {
+        string += `decision: ${interaction.decision}\n`;
+      }
+      if (interaction.decisionReasoning) {
+        string += `decision_reasoning: ${interaction.decisionReasoning}`;
+      }
+      return string;
+    })
+    .join("\n\n");
 
   let interactionHistory = chatHistory.map((interaction, index) => {
     let string = "";

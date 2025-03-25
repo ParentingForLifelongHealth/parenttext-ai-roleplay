@@ -87,35 +87,35 @@ class Framework {
   }
 
   #initializeFacilitatorPositiveReinforcementPipeline() {
-    this.tutorCoachMessage = SystemMessagePromptTemplate.fromTemplate(
+    this.tutorCoachMessagePositive = SystemMessagePromptTemplate.fromTemplate(
       this.config.system_prompts.facilitator_positive_reinforcement,
       ["scenario_description", "scenario_objectives"]
     );
 
-    this.tutorCoachPipeline = ChatPromptTemplate.fromMessages([this.tutorCoachMessage]).pipe(
-      this.tutorLLM
-    );
+    this.tutorCoachPipeline = ChatPromptTemplate.fromMessages([
+      this.tutorCoachMessagePositive,
+    ]).pipe(this.tutorLLM);
   }
 
   #initializeHelpPipeline() {
-    this.tutorCoachMessage = SystemMessagePromptTemplate.fromTemplate(
+    this.tutorCoachMessageNegative = SystemMessagePromptTemplate.fromTemplate(
       this.config.system_prompts.facilitator_help,
       ["scenario_description", "scenario_objectives"]
     );
 
-    this.facilitatorHelpPipeline = ChatPromptTemplate.fromMessages([this.tutorCoachMessage]).pipe(
-      this.tutorLLM
-    );
+    this.facilitatorHelpPipeline = ChatPromptTemplate.fromMessages([
+      this.tutorCoachMessageNegative,
+    ]).pipe(this.tutorLLM);
   }
 
   #initializeFacilitatorEndCoachingPipeline() {
-    this.tutorCoachMessage = SystemMessagePromptTemplate.fromTemplate(
+    this.tutorCoachMessageEnd = SystemMessagePromptTemplate.fromTemplate(
       this.config.system_prompts.facilitator_end_coaching,
       ["scenario_description", "scenario_objectives"]
     );
 
     this.facilitatorEndCoachingPipeline = ChatPromptTemplate.fromMessages([
-      this.tutorCoachMessage,
+      this.tutorCoachMessageEnd,
     ]).pipe(this.tutorLLM);
   }
 
@@ -162,9 +162,9 @@ class Framework {
     const variables = this.#prepareChildVariables(parentInput, interactionHistory, turnCount);
 
     // Debug: Format the prompt to see what will be sent to the LLM
-    // const formattedMessage = await this.childSystemMessage.format(variables);
-    // console.log("Formatted child prompt content:", formattedMessage.content);
-    console.log("----------------getChildResponse:---------------- :", variables);
+    const formattedMessage = await this.childSystemMessage.format(variables);
+    console.log("----------------getChildResponse:---------------- :\n", formattedMessage.content);
+
     const response = await this.childPipeline.invoke(variables);
     return response.content;
   }
@@ -223,11 +223,10 @@ class Framework {
     );
 
     // Debug: Format the prompt to see what will be sent to the LLM
-    // const formattedMessage = await this.tutorDecisionMessage.format(variables);
-    // console.log("Formatted decision prompt:", formattedMessage.content);
-    console.log("----------------getDecision:---------------- :", variables);
-    const response = await this.tutorDecisionPipeline.invoke(variables);
+    const formattedMessage = await this.tutorDecisionMessage.format(variables);
+    console.log("----------------getDecision:---------------- : \n", formattedMessage.content);
 
+    const response = await this.tutorDecisionPipeline.invoke(variables);
     return this.#parseDecisionResponse(response.content);
   }
 
@@ -313,7 +312,14 @@ class Framework {
       previousCoaching,
       reasoning
     );
-    console.log("----------------getPositiveCoachingFeedback:---------------- :", variables);
+
+    // Debug: Format the prompt to see what will be sent to the LLM
+    const formattedMessage = await this.tutorCoachMessagePositive.format(variables);
+    console.log(
+      "----------------getPositiveCoachingFeedback:---------------- :\n",
+      formattedMessage.content
+    );
+
     const response = await this.tutorCoachPipeline.invoke(variables);
     if (tutorOnlyResponse) {
       return response.content + ` ${this.config.static_messages.retry_message}`;
@@ -364,7 +370,14 @@ class Framework {
       interactionHistory,
       reasoning
     );
-    console.log("----------------getNegativeCoachingFeedback:---------------- :", variables);
+
+    // Debug: Format the prompt to see what will be sent to the LLM
+    const formattedMessage = await this.tutorCoachMessageNegative.format(variables);
+    console.log(
+      "----------------getNegativeCoachingFeedback:---------------- :\n",
+      formattedMessage.content
+    );
+
     const response = await this.facilitatorHelpPipeline.invoke(variables);
     if (tutorOnlyResponse) {
       return response.content + ` ${this.config.static_messages.retry_message}`;
@@ -423,7 +436,14 @@ class Framework {
       previousCoaching,
       reasoning
     );
-    console.log("----------------getEndCoachingFeedback----------------: ", variables);
+
+    // Debug: Format the prompt to see what will be sent to the LLM
+    const formattedMessage = await this.tutorCoachMessageEnd.format(variables);
+    console.log(
+      "----------------getEndCoachingFeedback:---------------- :\n",
+      formattedMessage.content
+    );
+
     const response = await this.facilitatorEndCoachingPipeline.invoke(variables);
     return response.content;
   }
@@ -445,7 +465,14 @@ class Framework {
       parent_feedback_positive: positiveFeedback,
       parent_feedback_negative: negativeFeedback,
     };
-    console.log("----------------getConversationSummary:---------------- :", variables);
+
+    // Debug: Format the prompt to see what will be sent to the LLM
+    const formattedMessage = await this.tutorSummaryMessage.format(variables);
+    console.log(
+      "----------------getConversationSummary:---------------- :\n",
+      formattedMessage.content
+    );
+
     const response = await this.tutorSummaryPipeline.invoke(variables);
     return response.content;
   }
